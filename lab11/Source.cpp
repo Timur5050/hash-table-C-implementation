@@ -24,6 +24,7 @@ ht_hash_table* create_hash_table(int size)
 	}
 	temp_hash_table->size = size;
 	temp_hash_table->count = 0;
+	temp_hash_table->cellar = temp_hash_table->size / 4;
 	temp_hash_table->items = (ht_item**)calloc(size, sizeof(ht_item*));
 
 	return temp_hash_table;
@@ -52,6 +53,7 @@ int hash_function(const char* string, const int a)
 		i++;
 		ptr++;
 	}
+	if ((int)hash < 0) return (int)hash * -1;
 	return (int)hash;
 }
 
@@ -84,13 +86,13 @@ int ht_insert(ht_hash_table* hash_table, const char* date, const char* done_work
 		int cursor = ht_len - 1;
 		ht_item* it = hash_table->items[index_of_hash_table];
 
-		while (cursor >= 0 && hash_table->items[cursor] != NULL)
+		while (cursor > hash_table->cellar && hash_table->items[cursor] != NULL)
 		{
-			if (strcmp(hash_table->items[cursor]->date, date)) return 0;
+			if (strcmp(hash_table->items[cursor]->date, date) == 0) return 0;
 			--cursor;
 		}
 
-		if (cursor == -1) return -1; // ht is fulll
+		if (cursor == hash_table->cellar) return -1; // cellar is fulll
 
 		hash_table->items[cursor] = create_hash_item(date, done_work);
 
@@ -103,6 +105,53 @@ int ht_insert(ht_hash_table* hash_table, const char* date, const char* done_work
 	return 0;
 }
 
+
+void delete_item_from_ht(ht_hash_table* hash_table, const char* date)
+{
+	int ht_len = hash_table->size;
+	int hash = hash_function(date, 151);
+	int index_of_hash_table = get_index_of_table(hash, ht_len);
+
+	if (!hash_table->items[index_of_hash_table]) return;
+
+	if (strcmp(hash_table->items[index_of_hash_table]->date, date) == 0)
+	{
+		if (hash_table->items[index_of_hash_table]->next == NULL)
+		{
+			delete_hash_item(hash_table->items[index_of_hash_table]);
+			hash_table->items[index_of_hash_table] = NULL;
+		}
+		else
+		{
+			strcpy_s(hash_table->items[index_of_hash_table]->date, strlen(hash_table->items[index_of_hash_table]->date), hash_table->items[index_of_hash_table]->next->date);
+			strcpy_s(hash_table->items[index_of_hash_table]->done_work, strlen(hash_table->items[index_of_hash_table]->done_work), hash_table->items[index_of_hash_table]->next->done_work);
+			hash_table->items[index_of_hash_table]->next = hash_table->items[index_of_hash_table]->next->next;
+			delete_hash_item(hash_table->items[index_of_hash_table]->next);
+			hash_table->items[index_of_hash_table]->next = NULL;
+		}
+		return;
+	}
+	ht_item* temp = hash_table->items[index_of_hash_table];
+	while (temp->next->date != date)
+	{
+		temp = temp->next;
+	}
+	if (temp->next->next == NULL)
+	{
+		delete_hash_item(temp->next->next);
+		temp->next->next = NULL;
+	}
+	else
+	{
+		temp->next = temp->next->next;
+		delete_hash_item(temp->next);
+		temp->next = NULL;
+	}
+
+}
+
+
+
 void print_ht(ht_hash_table* hash_table)
 {
 	if (!hash_table) return;
@@ -111,7 +160,7 @@ void print_ht(ht_hash_table* hash_table)
 	{
 		if (hash_table->items[i])
 		{
-			printf("%date : %s, event : %s, hash %d : ", hash_table->items[i]->date, hash_table->items[i]->done_work, hash_function(hash_table->items[i]->date, 151));
+			printf("date : %s, event : %s\n", hash_table->items[i]->date, hash_table->items[i]->done_work);
 		}
 		i++;
 	}

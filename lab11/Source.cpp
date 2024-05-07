@@ -57,18 +57,56 @@ int hash_function(const char* string, const int a)
 	return (int)hash;
 }
 
-int get_index_of_table(int hash, int len_of_table)
+int get_index_of_table(int hash, int len_of_table, int cellar)
 {
-	return hash % len_of_table;
+	return hash % (len_of_table - cellar);
+}
+
+void resize_hash_table(ht_hash_table* hash_table, int new_size)
+{
+	ht_hash_table* new_ht = create_hash_table(new_size);
+	int i;
+	for (i = 0; i < hash_table->size; i++)
+	{
+		ht_item* item = hash_table->items[i];
+		if (item != NULL)
+		{
+			ht_insert(new_ht, item->date, item->done_work);
+		}
+	}
+
+	hash_table->size = new_ht->size;
+	hash_table->count = new_ht->count;
+
+	// delete old data
+	const int temp_size = hash_table->size;
+	hash_table->size = new_ht->size;
+	new_ht->size = temp_size;
+
+	ht_item** temp_items = hash_table->items;
+	hash_table->items = new_ht->items;
+	new_ht->items = temp_items;
+
+	delete_hash_table(new_ht);
+}
+
+void resize_ht(ht_hash_table* hash_table)
+{
+	int new_size = hash_table->size * 2;
+	resize_hash_table(hash_table, new_size);
 }
 
 int ht_insert(ht_hash_table* hash_table, const char* date, const char* done_work)
 {
-	if (!hash_table) return 2;
+	if (!hash_table)
+	{
+		printf("create hash table firstly bro\n");
+		return 0;
+	}
 
 	int ht_len = hash_table->size;
 	int hash = hash_function(date, 151);
-	int index_of_hash_table = get_index_of_table(hash, ht_len);
+	int index_of_hash_table = get_index_of_table(hash, ht_len, hash_table->cellar);
 
 
 	if (!hash_table->items[index_of_hash_table])
@@ -93,8 +131,11 @@ int ht_insert(ht_hash_table* hash_table, const char* date, const char* done_work
 			--cursor;
 		}
 
-		if (cursor == hash_table->cellar) return -1; // cellar is fulll
-
+		if (cursor == hash_table->cellar)// cellar is fulll
+		{
+			resize_ht(hash_table);
+			return 0; 
+		}
 		hash_table->items[cursor] = create_hash_item(date, done_work);
 
 		while (it->next != NULL)
@@ -111,7 +152,7 @@ void delete_item_from_ht(ht_hash_table* hash_table, const char* date)
 {
 	int ht_len = hash_table->size;
 	int hash = hash_function(date, 151);
-	int index_of_hash_table = get_index_of_table(hash, ht_len);
+	int index_of_hash_table = get_index_of_table(hash, ht_len, hash_table->cellar);
 
 	if (!hash_table->items[index_of_hash_table]) return;
 
@@ -155,7 +196,7 @@ void search_hash_item(ht_hash_table* hash_table, const char* date)
 {
 	int ht_len = hash_table->size;
 	int hash = hash_function(date, 151);
-	int index_of_hash_table = get_index_of_table(hash, ht_len);
+	int index_of_hash_table = get_index_of_table(hash, ht_len, hash_table->cellar);
 
 	if (hash_table->items[index_of_hash_table] == NULL)
 	{
@@ -187,13 +228,17 @@ void search_hash_item(ht_hash_table* hash_table, const char* date)
 
 void print_ht(ht_hash_table* hash_table)
 {
-	if (!hash_table) return;
+	if (!hash_table)
+	{
+		printf("no elements\n");
+		return;
+	}
 	int i = 0;
 	while (i < hash_table->size)
 	{
 		if (hash_table->items[i])
 		{
-			printf("date : %s, event : %s\n", hash_table->items[i]->date, hash_table->items[i]->done_work);
+			printf("date : %s, event : %s, index in hash table : %d\n", hash_table->items[i]->date, hash_table->items[i]->done_work, get_index_of_table(hash_function(hash_table->items[i]->date, 151), 20, hash_table->cellar));
 		}
 		i++;
 	}

@@ -35,6 +35,8 @@ int ht_insert(ht_hash_table* hash_table, const char* date, const char* done_work
 
 void delete_item_from_ht(ht_hash_table* hash_table, const char* date);
 
+void search_hash_item(ht_hash_table* hash_table, const char* date);
+
 void print_ht(ht_hash_table* hash_table);
 
 void delete_hash_item(ht_item* item);

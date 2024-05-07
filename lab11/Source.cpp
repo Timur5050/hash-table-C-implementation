@@ -77,10 +77,11 @@ int ht_insert(ht_hash_table* hash_table, const char* date, const char* done_work
 		if (temp)
 		{
 			hash_table->items[index_of_hash_table] = temp;
-			hash_table->count++; 
+			hash_table->count++;
 			return 0;
 		}
 	}
+	else if (strcmp(hash_table->items[index_of_hash_table]->date, date) == 0) return 0;
 	else
 	{
 		int cursor = ht_len - 1;
@@ -147,9 +148,41 @@ void delete_item_from_ht(ht_hash_table* hash_table, const char* date)
 		delete_hash_item(temp->next);
 		temp->next = NULL;
 	}
-
 }
 
+
+void search_hash_item(ht_hash_table* hash_table, const char* date)
+{
+	int ht_len = hash_table->size;
+	int hash = hash_function(date, 151);
+	int index_of_hash_table = get_index_of_table(hash, ht_len);
+
+	if (hash_table->items[index_of_hash_table] == NULL)
+	{
+		printf("value is not found\n");
+		return;
+	}
+	if (strcmp(hash_table->items[index_of_hash_table]->date, date) == 0)
+	{
+		printf("value is found : %s\n", hash_table->items[index_of_hash_table]->done_work);
+		return;
+	}
+
+	ht_item* temp = hash_table->items[index_of_hash_table];
+	while (strcmp(temp->date, date) != 0 && temp != NULL)
+	{
+		temp = temp->next;
+	}
+
+	if (temp == NULL)
+	{
+		printf("value is not found\n");
+		return;
+	}
+
+	printf("value is found : %s\n", temp->done_work);
+
+}
 
 
 void print_ht(ht_hash_table* hash_table)

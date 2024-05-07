@@ -1,6 +1,3 @@
-#include <stdlib.h>
-#include <string.h>
-
 #include "Header.h"
 
 
@@ -22,6 +19,37 @@ ht_hash_table* create_hash_table(int size)
 	temp_hash_table->items = (ht_item**)calloc(size, sizeof(ht_item*));
 
 	return temp_hash_table;
+}
+
+int pow(int a, int b)
+{
+	if (b == 0) return 1;
+	else if ((b % 2) == 0)
+		return pow(a, b / 2) * pow(a, b / 2);
+	else
+		return a * pow(a, b / 2) * pow(a, b / 2);
+}
+
+
+// a is always > 128 and a is prime
+int hash_function(char* string, int a)
+{
+	int hash = 0;
+	int string_len = strlen(string);
+	char* ptr = string;
+	int i = 0;
+	while (*ptr != '\0')
+	{
+		hash += (pow(a, (string_len - (i + 1))) * int(*ptr));
+		i++;
+		ptr++;
+	}
+	return hash;
+}
+
+int get_index_of_table(int hash, int len_of_table)
+{
+	return hash % len_of_table;
 }
 
 void delete_hash_item(ht_item* item)

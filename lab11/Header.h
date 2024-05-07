@@ -1,5 +1,7 @@
 #pragma once
-
+#include <stdlib.h>
+#include <string.h>
+#include "stdio.h"
 
 typedef struct
 {
@@ -18,6 +20,12 @@ typedef struct
 ht_item* create_hash_item(char* date, char* done_work);
 
 ht_hash_table* create_hash_table(int size);
+
+int pow(int a, int b);
+
+int hash_function(char* string, int a);
+
+int get_index_of_table(int hash, int len_of_table);
 
 void delete_hash_item(ht_item* item);
 

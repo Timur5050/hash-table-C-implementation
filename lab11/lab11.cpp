@@ -1,65 +1,94 @@
 ﻿#define _CRT_SECURE_NO_WARNINGS
 #include "Header.h"
 
+#define standart_size 20
+
 int main()
 {
-	ht_hash_table *map = create_hash_table(20);
-	//const char date1[] = "03:02:12";
-	//char date2[] = "13:32:03";
-	//const char ev1[] = "do home work";
-	//char ev2[] = "do leetcode";
+	ht_hash_table *map = NULL;
 
-	//ht_insert(map, date1, ev1);
-	//print_ht(map);
-	//printf("\n\n\n");
-	//ht_insert(map, date2, ev2);
-	//print_ht(map);
-	//delete_item_from_ht(map, date1);
-	//printf("\n\n\n");
-	//print_ht(map);
-	 
-	FILE* fl;
-	fl = fopen("file.txt", "r");
-	if (!fl)
-	{
-		printf("no file\n\n");
-		return 1;
-	}
+	int num;
 
-	char ptr = fgetc(fl);
-	while (!feof(fl))
-	{
-		char temp_date[9], temp_task[200];
-		int temp_counter = 0;	
-		while (ptr != ' ')
-		{
-			temp_date[temp_counter++] = ptr;
-			ptr = fgetc(fl);
-		}
-		temp_date[temp_counter] = '\0';
-		temp_counter = 0;
-		ptr = fgetc(fl);
+	//while (1)
+	//{
+	//	menu();
+	//	scanf_s("%d", &num);
+	//	switch (num)
+	//	{
+	//	case 0:
+	//		map = create_hash_table(standart_size);
+	//		break;
+	//	case 1:
+	//		add_elems_from_file(map);
+	//		break;
+	//	case 2:
+	//		print_ht(map);
+	//		break;
+	//	case 3:
+	//		delete_item_from_ht(map);
+	//		break;
+	//	case 4:
+	//		search_hash_item(map);
+	//		break;
+	//	case 5:
+	//		add_elem_by_keyboard(map);
+	//		break;
+	//	case 9:
+	//		printf("gg\n");
+	//		delete_hash_table(map);
+	//		return 0;
+	//	default:
+	//		printf("only (0 - 5 and 9)\n");
+	//		break;
+	//	}
+	//}
+	
 
-		while (ptr != '\n' && !feof(fl))
-		{		
-			temp_task[temp_counter++] = ptr;
-			ptr = fgetc(fl);
-		}
-		temp_task[temp_counter] = '\0';
 
-		printf("date : %s, task : %s\n", temp_date, temp_task);
-		ht_insert(map, temp_date, temp_task);
-		ptr = fgetc(fl);
-	}
-	printf("\n\n\n");
+	map = create_hash_table(standart_size);
+	add_elems_from_file(map);
 	print_ht(map);
 
-	char temp[10] = "22:10:11";
+	delete_item_from_ht(map);
+	print_ht(map);
 
-	search_hash_item(map, temp);
-	//search_hash_item(map, date1);
+	//char a[] = "as";
 
-	//printf("\n\n%d : %d : %d", get_index_of_table(hash_function(date1, 151), 20), get_index_of_table(hash_function(date2, 151), 20), -102 % 10);
-	//printf("%d", get_index_of_table(hash_function(str, 151), 53));
+	//char* p = _strdup(a);
+
+	//printf("%s", p);
+
+	//free(p);
+	//p = NULL;
+
+	//if (p == NULL)
+	//{
+	//	printf("\nnull");
+	//}
+	//else
+	//{
+	//	printf("%d", *p);
+	//}
+
+	//add_elems_from_file(map);
+	//print_ht(map);
+	//printf("size : %d : cellar : %d", map->size, map->cellar);
+	////search_hash_item(map);
+	//
+	//add_elem_by_keyboard(map);
+	//print_ht(map);
+	//printf("size : %d", map->size);
+
+	//char temp_date[] = "15:10:12";
+
+	//int ht_len = map->size;
+	//int hash = hash_function(temp_date, 151);
+	//int index_of_hash_table = get_index_of_table(hash, ht_len, map->cellar);
+
+	//printf("%d : size : %d : cellar : %d\n", index_of_hash_table, map->size, map->cellar);
+
+	//search_hash_item(map);
+	//printf("%d", )
+	//print_ht(map);
 	return 0;
 }

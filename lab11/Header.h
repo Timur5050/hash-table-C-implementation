@@ -37,11 +37,17 @@ void resize_ht(ht_hash_table* hash_table);
 
 int ht_insert(ht_hash_table* hash_table, const char* date, const char* done_work);
 
-void delete_item_from_ht(ht_hash_table* hash_table, const char* date);
+void add_elem_by_keyboard(ht_hash_table* hash_table);
 
-void search_hash_item(ht_hash_table* hash_table, const char* date);
+void add_elems_from_file(ht_hash_table* hash_table);
+
+void delete_item_from_ht(ht_hash_table* hash_table);
+
+void search_hash_item(ht_hash_table* hash_table);
 
 void print_ht(ht_hash_table* hash_table);
+
+void menu();
 
 void delete_hash_item(ht_item* item);
 

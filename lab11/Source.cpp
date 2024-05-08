@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include "Header.h"
 
 
@@ -69,25 +70,20 @@ void resize_hash_table(ht_hash_table* hash_table, int new_size)
 	for (i = 0; i < hash_table->size; i++)
 	{
 		ht_item* item = hash_table->items[i];
-		if (item != NULL)
+		while (item != NULL)
 		{
 			ht_insert(new_ht, item->date, item->done_work);
+			item = item->next;
 		}
 	}
-
-	hash_table->size = new_ht->size;
-	hash_table->count = new_ht->count;
-
-	// delete old data
-	const int temp_size = hash_table->size;
-	hash_table->size = new_ht->size;
-	new_ht->size = temp_size;
-
-	ht_item** temp_items = hash_table->items;
+	
+	hash_table->size = new_size;
+	hash_table->cellar = new_size / 4;
+	free(hash_table->items);
 	hash_table->items = new_ht->items;
-	new_ht->items = temp_items;
 
-	delete_hash_table(new_ht);
+
+	free(new_ht);
 }
 
 void resize_ht(ht_hash_table* hash_table)
@@ -147,41 +143,132 @@ int ht_insert(ht_hash_table* hash_table, const char* date, const char* done_work
 	return 0;
 }
 
-
-void delete_item_from_ht(ht_hash_table* hash_table, const char* date)
+void add_elem_by_keyboard(ht_hash_table* hash_table)
 {
+	while (getchar() != '\n');
+	char temp_date[200], temp_work[200];
+	printf("data (dd.mm.yy): ");
+	gets_s(temp_date);
+
+	printf("word : ");
+	gets_s(temp_work);
+
+	ht_insert(hash_table, temp_date, temp_work);
+}
+
+void add_elems_from_file(ht_hash_table* hash_table)
+{
+	FILE* fl;
+	fl = fopen("file.txt", "r");
+	if (!fl)
+	{
+		printf("no file\n\n");
+		return;
+	}
+
+	if (hash_table == NULL)
+	{
+		printf("create hash table first\n");
+		return;
+	}
+
+	char ptr = fgetc(fl);
+	while (!feof(fl))
+	{
+		char temp_date[9], temp_task[200];
+		int temp_counter = 0;	
+		while (ptr != ' ')
+		{
+			temp_date[temp_counter++] = ptr;
+			ptr = fgetc(fl);
+		}
+		temp_date[temp_counter] = '\0';
+		temp_counter = 0;
+		ptr = fgetc(fl);
+
+		while (ptr != '\n' && !feof(fl))
+		{		
+			temp_task[temp_counter++] = ptr;
+			ptr = fgetc(fl);
+		}
+		temp_task[temp_counter] = '\0';
+
+		//printf("date : %s, task : %s\n", temp_date, temp_task);
+		ht_insert(hash_table, temp_date, temp_task);
+		ptr = fgetc(fl);
+	}
+}
+
+void delete_item_from_ht(ht_hash_table* hash_table)
+{
+	while (getchar() != '\n');
+	char temp_date[200];
+	printf("enter date to delete : ");
+	gets_s(temp_date);
+
+	if (hash_table == NULL)
+	{
+		printf("create hash table first\n");
+		return;
+	}
+
 	int ht_len = hash_table->size;
-	int hash = hash_function(date, 151);
+	int hash = hash_function(temp_date, 151);
 	int index_of_hash_table = get_index_of_table(hash, ht_len, hash_table->cellar);
 
 	if (!hash_table->items[index_of_hash_table]) return;
 
-	if (strcmp(hash_table->items[index_of_hash_table]->date, date) == 0)
+	if (strcmp(hash_table->items[index_of_hash_table]->date, temp_date) == 0)
 	{
 		if (hash_table->items[index_of_hash_table]->next == NULL)
 		{
 			delete_hash_item(hash_table->items[index_of_hash_table]);
+			//ht_item* temp = hash_table->items[index_of_hash_table];
 			hash_table->items[index_of_hash_table] = NULL;
+			return;
 		}
 		else
 		{
-			strcpy_s(hash_table->items[index_of_hash_table]->date, strlen(hash_table->items[index_of_hash_table]->date), hash_table->items[index_of_hash_table]->next->date);
-			strcpy_s(hash_table->items[index_of_hash_table]->done_work, strlen(hash_table->items[index_of_hash_table]->done_work), hash_table->items[index_of_hash_table]->next->done_work);
-			hash_table->items[index_of_hash_table]->next = hash_table->items[index_of_hash_table]->next->next;
+			//strcpy_s(hash_table->items[index_of_hash_table]->date, strlen(hash_table->items[index_of_hash_table]->date), hash_table->items[index_of_hash_table]->next->date);
+			//strcpy_s(hash_table->items[index_of_hash_table]->done_work, strlen(hash_table->items[index_of_hash_table]->done_work), hash_table->items[index_of_hash_table]->next->done_work);
+			char* t = hash_table->items[index_of_hash_table]->date;
+			hash_table->items[index_of_hash_table]->date = hash_table->items[index_of_hash_table]->next->date;
+			hash_table->items[index_of_hash_table]->next->date = t;
+
+			char* t1 = hash_table->items[index_of_hash_table]->done_work;
+			hash_table->items[index_of_hash_table]->done_work = hash_table->items[index_of_hash_table]->next->done_work;
+			hash_table->items[index_of_hash_table]->next->done_work = t1;
+
+
+			ht_item* temp = hash_table->items[index_of_hash_table]->next->next;
 			delete_hash_item(hash_table->items[index_of_hash_table]->next);
-			hash_table->items[index_of_hash_table]->next = NULL;
+			//hash_table->items[index_of_hash_table]->next = NULL;
+			if (temp) hash_table->items[index_of_hash_table]->next = temp;
+
+
+			//ht_item* temp = hash_table->items[index_of_hash_table]->next;
+			//hash_table->items[index_of_hash_table]->next = hash_table->items[index_of_hash_table]->next->next;
+			//delete_hash_item(temp);
+			//temp = NULL;
 		}
 		return;
 	}
 	ht_item* temp = hash_table->items[index_of_hash_table];
-	while (temp->next->date != date)
+	while (temp && temp->next && temp->next->date != temp_date)
 	{
 		temp = temp->next;
 	}
-	if (temp->next->next == NULL)
+	if (temp->next == NULL && strcmp(temp->date, temp_date) != 0) return;
+	if (temp->next == NULL)
 	{
-		delete_hash_item(temp->next->next);
-		temp->next->next = NULL;
+		delete_hash_item(temp);
+		temp = NULL;
+	}
+
+	else if (temp->next->next == NULL)
+	{
+		delete_hash_item(temp->next);
+		temp->next = NULL;
 	}
 	else
 	{
@@ -191,11 +278,21 @@ void delete_item_from_ht(ht_hash_table* hash_table, const char* date)
 	}
 }
 
-
-void search_hash_item(ht_hash_table* hash_table, const char* date)
+void search_hash_item(ht_hash_table* hash_table)
 {
+	while (getchar() != '\n');
+	char temp_date[200];
+	printf("enter date to search : ");
+	gets_s(temp_date);
+
+	if (hash_table == NULL)
+	{
+		printf("create hash table first\n");
+		return;
+	}
+
 	int ht_len = hash_table->size;
-	int hash = hash_function(date, 151);
+	int hash = hash_function(temp_date, 151);
 	int index_of_hash_table = get_index_of_table(hash, ht_len, hash_table->cellar);
 
 	if (hash_table->items[index_of_hash_table] == NULL)
@@ -203,14 +300,14 @@ void search_hash_item(ht_hash_table* hash_table, const char* date)
 		printf("value is not found\n");
 		return;
 	}
-	if (strcmp(hash_table->items[index_of_hash_table]->date, date) == 0)
+	if (strcmp(hash_table->items[index_of_hash_table]->date, temp_date) == 0)
 	{
 		printf("value is found : %s\n", hash_table->items[index_of_hash_table]->done_work);
 		return;
 	}
 
 	ht_item* temp = hash_table->items[index_of_hash_table];
-	while (strcmp(temp->date, date) != 0 && temp != NULL)
+	while (strcmp(temp->date, temp_date) != 0 && temp != NULL)
 	{
 		temp = temp->next;
 	}
@@ -236,31 +333,47 @@ void print_ht(ht_hash_table* hash_table)
 	int i = 0;
 	while (i < hash_table->size)
 	{
-		if (hash_table->items[i])
+		if (hash_table->items[i] && hash_table->items[i]->date)
 		{
-			printf("date : %s, event : %s, index in hash table : %d\n", hash_table->items[i]->date, hash_table->items[i]->done_work, get_index_of_table(hash_function(hash_table->items[i]->date, 151), 20, hash_table->cellar));
+			printf("date : %s, event : %s, index in hash table : %d\n", hash_table->items[i]->date, hash_table->items[i]->done_work, get_index_of_table(hash_function(hash_table->items[i]->date, 151), hash_table->size, hash_table->cellar));
 		}
 		i++;
 	}
 }
 
+void menu()
+{
+	printf("0 - create hash table\n");
+	printf("1 - add elements from file to ht\n");
+	printf("2 - print hash table\n");
+	printf("3 - delete elem in hash table\n");
+	printf("4 - search in hash table\n");
+	printf("5 - add new elem by keyboard\n");
+	printf("9 - quit\n : ");
+}
 
 void delete_hash_item(ht_item* item)
 {
 	free(item->date);
+	item->date = NULL;
 	free(item->done_work);
 	item->next = NULL;
 	free(item);
+	item = NULL;
 }
 
 
-void delete_hash_table(ht_hash_table* table)
+void delete_hash_table(ht_hash_table* hash_table)
 {
-	int len = table->size;
+	if (hash_table == NULL)
+	{
+		return;
+	}
+	int len = hash_table->size;
 	for (int i = 0; i < len; i++)
 	{
-		if(table->items[i]) delete_hash_item(table->items[i]);
+		if(hash_table->items[i]) delete_hash_item(hash_table->items[i]);
 	}
-	free(table->items);
-	free(table);
+	free(hash_table->items);
+	free(hash_table);
 }

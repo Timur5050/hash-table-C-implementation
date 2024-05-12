@@ -28,6 +28,11 @@ ht_hash_table* create_hash_table(int size)
 	temp_hash_table->cellar = temp_hash_table->size / 4;
 	temp_hash_table->items = (ht_item**)calloc(size, sizeof(ht_item*));
 
+	for (int i = 0; i < size; i++)
+	{
+		temp_hash_table->items[i] = NULL;
+	}
+
 	return temp_hash_table;
 }
 
@@ -105,7 +110,7 @@ int ht_insert(ht_hash_table* hash_table, const char* date, const char* done_work
 	int index_of_hash_table = get_index_of_table(hash, ht_len, hash_table->cellar);
 
 
-	if (!hash_table->items[index_of_hash_table])
+	if (!hash_table->items[index_of_hash_table] || !hash_table->items[index_of_hash_table]->date)
 	{
 		ht_item* temp = create_hash_item(date, done_work);
 		if (temp)
@@ -121,18 +126,20 @@ int ht_insert(ht_hash_table* hash_table, const char* date, const char* done_work
 		int cursor = ht_len - 1;
 		ht_item* it = hash_table->items[index_of_hash_table];
 
-		while (cursor > hash_table->cellar && hash_table->items[cursor] != NULL)
+		while (cursor > hash_table->cellar && hash_table->items[cursor] != NULL && hash_table->items[cursor]->date)
 		{
-			if (strcmp(hash_table->items[cursor]->date, date) == 0) return 0;
+			if ((hash_table->items[cursor]->date) && strcmp(hash_table->items[cursor]->date, date) == 0) return 0;
 			--cursor;
 		}
 
 		if (cursor == hash_table->cellar)// cellar is fulll
 		{
 			resize_ht(hash_table);
+			ht_insert(hash_table, date, done_work);
 			return 0; 
 		}
 		hash_table->items[cursor] = create_hash_item(date, done_work);
+		hash_table->count++;
 
 		while (it->next != NULL)
 		{
@@ -146,6 +153,12 @@ int ht_insert(ht_hash_table* hash_table, const char* date, const char* done_work
 void add_elem_by_keyboard(ht_hash_table* hash_table)
 {
 	while (getchar() != '\n');
+	if (!hash_table)
+	{
+		printf("create hash table firstly");
+		return;
+	}
+
 	char temp_date[200], temp_work[200];
 	printf("data (dd.mm.yy): ");
 	gets_s(temp_date);
@@ -202,6 +215,11 @@ void add_elems_from_file(ht_hash_table* hash_table)
 void delete_item_from_ht(ht_hash_table* hash_table)
 {
 	while (getchar() != '\n');
+	if (!hash_table)
+	{
+		printf("no elemens\n");
+		return;
+	}
 	char temp_date[200];
 	printf("enter date to delete : ");
 	gets_s(temp_date);
@@ -254,42 +272,32 @@ void delete_item_from_ht(ht_hash_table* hash_table)
 		return;
 	}
 	ht_item* temp = hash_table->items[index_of_hash_table];
-	while (temp && temp->next && temp->next->date != temp_date)
+	while (temp)
 	{
+		if (temp->date && strcmp(temp->date, temp_date) == 0)
+		{
+			break;
+		}
 		temp = temp->next;
 	}
-	if (temp->next == NULL && strcmp(temp->date, temp_date) != 0) return;
-	if (temp->next == NULL)
+
+	if (temp && temp->date && strcmp(temp->date, temp_date) == 0)
 	{
 		delete_hash_item(temp);
-		temp = NULL;
-	}
-
-	else if (temp->next->next == NULL)
-	{
-		delete_hash_item(temp->next);
-		temp->next = NULL;
-	}
-	else
-	{
-		temp->next = temp->next->next;
-		delete_hash_item(temp->next);
-		temp->next = NULL;
 	}
 }
 
 void search_hash_item(ht_hash_table* hash_table)
 {
 	while (getchar() != '\n');
-	char temp_date[200];
-	printf("enter date to search : ");
-	gets_s(temp_date);
-
 	if (hash_table == NULL)
 	{
 		printf("create hash table first\n");
 		return;
 	}
+	char temp_date[200];
+	printf("enter date to search : ");
+	gets_s(temp_date);
 
 	int ht_len = hash_table->size;
 	int hash = hash_function(temp_date, 151);
@@ -322,6 +330,16 @@ void search_hash_item(ht_hash_table* hash_table)
 
 }
 
+void table_load_factor(ht_hash_table* hash_table)
+{
+	if (!hash_table)
+	{
+		printf("create hash table firstly\n");
+		return;
+	}
+	printf("table load factor : %d\n", hash_table->count);
+}
+
 
 void print_ht(ht_hash_table* hash_table)
 {
@@ -349,17 +367,18 @@ void menu()
 	printf("3 - delete elem in hash table\n");
 	printf("4 - search in hash table\n");
 	printf("5 - add new elem by keyboard\n");
+	printf("6 - table load factor\n");
 	printf("9 - quit\n : ");
 }
 
 void delete_hash_item(ht_item* item)
 {
 	free(item->date);
-	item->date = NULL;
 	free(item->done_work);
 	item->next = NULL;
-	free(item);
-	item = NULL;
+	//free(item);
+	item->date = NULL;
+	item->done_work = NULL;
 }
 
 
@@ -372,7 +391,11 @@ void delete_hash_table(ht_hash_table* hash_table)
 	int len = hash_table->size;
 	for (int i = 0; i < len; i++)
 	{
-		if(hash_table->items[i]) delete_hash_item(hash_table->items[i]);
+		if (hash_table->items[i])
+		{
+			delete_hash_item(hash_table->items[i]);
+			free(hash_table->items[i]);
+		}
 	}
 	free(hash_table->items);
 	free(hash_table);

@@ -9,48 +9,51 @@ int main()
 
 	int num;
 
-	//while (1)
-	//{
-	//	menu();
-	//	scanf_s("%d", &num);
-	//	switch (num)
-	//	{
-	//	case 0:
-	//		map = create_hash_table(standart_size);
-	//		break;
-	//	case 1:
-	//		add_elems_from_file(map);
-	//		break;
-	//	case 2:
-	//		print_ht(map);
-	//		break;
-	//	case 3:
-	//		delete_item_from_ht(map);
-	//		break;
-	//	case 4:
-	//		search_hash_item(map);
-	//		break;
-	//	case 5:
-	//		add_elem_by_keyboard(map);
-	//		break;
-	//	case 9:
-	//		printf("gg\n");
-	//		delete_hash_table(map);
-	//		return 0;
-	//	default:
-	//		printf("only (0 - 5 and 9)\n");
-	//		break;
-	//	}
-	//}
+	while (1)
+	{
+		menu();
+		scanf_s("%d", &num);
+		switch (num)
+		{
+		case 0:
+			map = create_hash_table(standart_size);
+			break;
+		case 1:
+			add_elems_from_file(map);
+			break;
+		case 2:
+			print_ht(map);
+			break;
+		case 3:
+			delete_item_from_ht(map);
+			break;
+		case 4:
+			search_hash_item(map);
+			break;
+		case 5:
+			add_elem_by_keyboard(map);
+			break;
+		case 6:
+			table_load_factor(map);
+			break;
+		case 9:
+			printf("gg\n");
+			delete_hash_table(map);
+			return 0;
+		default:
+			printf("only (0 - 5 and 9)\n");
+			break;
+		}
+	}
 	
 
 
-	map = create_hash_table(standart_size);
-	add_elems_from_file(map);
-	print_ht(map);
+	//map = create_hash_table(standart_size);
+	//add_elems_from_file(map);
+	//print_ht(map);
 
-	delete_item_from_ht(map);
-	print_ht(map);
+	//delete_item_from_ht(map);
+	//print_ht(map);
 
 	//char a[] = "as";
 

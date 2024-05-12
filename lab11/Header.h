@@ -45,6 +45,8 @@ void delete_item_from_ht(ht_hash_table* hash_table);
 
 void search_hash_item(ht_hash_table* hash_table);
 
+void table_load_factor(ht_hash_table* hash_table);
+
 void print_ht(ht_hash_table* hash_table);
 
 void menu();
